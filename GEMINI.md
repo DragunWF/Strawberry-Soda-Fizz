@@ -33,6 +33,7 @@ strawberry_soda_project/
 ├── prototypes/
 ├── utils/
 │   └── math_helpers.py
+├── tests/
 ├── modules/
 │   ├── core/
 │   │   ├── engine.py
