@@ -1,9 +1,14 @@
 import pygame
 import sys
 from typing import List, Optional, Dict
+
 from modules.constants import WINDOW_WIDTH, WINDOW_HEIGHT, FPS, TITLE, BG_COLOR
 from modules.core.state_machine import StateMachine
+
 from modules.scenes.base_scene import BaseScene
+from modules.scenes.main_menu import MainMenuScene
+from modules.scenes.game_scene import GameScene
+from modules.scenes.game_over import GameOverScene
 
 
 class PlaceholderScene(BaseScene):
@@ -32,7 +37,6 @@ class PlaceholderScene(BaseScene):
         # but scenes can add more.
         pass
 
-
 class Engine:
     """
     Main Pygame engine that handles the system lifecycle, event loop,
@@ -47,11 +51,13 @@ class Engine:
         self.is_running = True
         self.state_machine = StateMachine()
 
-        # Initialize states
+        # Initialize and setup scenes
         states: Dict[str, BaseScene] = {
-            "PLACEHOLDER": PlaceholderScene()
+            "MENU": MainMenuScene(),
+            "GAME": GameScene(),
+            "GAME_OVER": GameOverScene()
         }
-        self.state_machine.setup(states, "PLACEHOLDER")
+        self.state_machine.setup(states, "MENU")
 
     def run(self) -> None:
         """

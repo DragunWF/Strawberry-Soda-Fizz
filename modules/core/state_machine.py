@@ -50,6 +50,7 @@ class StateMachine:
         """
         Transitions to a new state and calls its enter() method.
         """
+        print(f"State transition: {self.current_state_name} -> {new_state_name}")
         self.current_state_name = new_state_name
         self.current_state_obj = self.states[new_state_name]
         self.current_state_obj.enter()

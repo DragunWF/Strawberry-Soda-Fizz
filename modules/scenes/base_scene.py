@@ -5,7 +5,7 @@ from typing import Optional, List
 
 class BaseScene(ABC):
     """
-    The abstract contract for all scenes in ChronoFrost.
+    The abstract contract for all scenes in Strawberry Soda Fizz.
     Any class inheriting from this MUST implement the abstract methods below,
     or Python will raise a TypeError upon instantiation.
     """
