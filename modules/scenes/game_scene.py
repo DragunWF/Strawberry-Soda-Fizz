@@ -30,30 +30,31 @@ class GameScene(BaseScene):
         self.hud_font = pygame.font.SysFont(None, 36)
         self.grace_font = pygame.font.SysFont(None, 72)
         self.grace_timer = 0.0
+        self.fizz_spawned = False
         
-        # Initial procedural fizz setup
-        self._spawn_initial_bubbles()
+        # Initial starting platform
+        self._spawn_starting_platform()
 
-    def _spawn_initial_bubbles(self) -> None:
+    def _spawn_starting_platform(self) -> None:
         """
-        Creates bubbles scattered across the height of the screen.
-        Ensures a starting bubble is placed under the player's spawn point.
+        Clears the bubbles list. No initial platform is spawned.
         """
         self.bubbles = []
-        
-        # 1. Guaranteed starting platform below the player
-        start_bubble = Bubble(PLAYER_START_X + 15, PLAYER_START_Y + 60)
-        self.bubbles.append(start_bubble)
-        
-        # 2. Procedural scatter for the rest
-        for _ in range(INITIAL_BUBBLE_COUNT - 1):
+        self.fizz_spawned = False
+
+    def _spawn_procedural_fizz(self) -> None:
+        """
+        Fills the screen with the remaining procedural bubbles.
+        """
+        for _ in range(INITIAL_BUBBLE_COUNT - len(self.bubbles)):
             x = random.randint(50, WINDOW_WIDTH - 50)
             y = random.randint(150, WINDOW_HEIGHT - 50)
             self.bubbles.append(Bubble(x, y))
+        self.fizz_spawned = True
 
     def enter(self) -> None:
         """
-        Resets the next state, player position, score, and starts the grace period.
+        Resets the scene, player position, score, and starts the grace period.
         """
         self.next_state = None
         self.player.x = PLAYER_START_X
@@ -63,7 +64,7 @@ class GameScene(BaseScene):
         
         ScoreManager.reset_score()
         self.collectibles = []
-        self._spawn_initial_bubbles()
+        self._spawn_starting_platform()
 
     def handle_events(self, events: List[pygame.event.Event]) -> None:
         """
@@ -77,12 +78,12 @@ class GameScene(BaseScene):
     def update(self, dt: float) -> Optional[str]:
         """
         Updates entities and handles physics/scoring.
+        Triggers procedural fizz spawning after the grace period ends.
         """
         # --- Grace Period Update ---
         if self.grace_timer > 0:
             self.grace_timer -= dt
             # During grace period, don't update player gravity
-            # We still allow horizontal movement for tuning
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
                 self.player.x -= self.player.speed * dt
@@ -91,6 +92,10 @@ class GameScene(BaseScene):
             self.player.rect.x = int(self.player.x)
             self.player.rect.y = int(self.player.y)
         else:
+            # Check if we need to trigger the procedural fizz spawn
+            if not self.fizz_spawned:
+                self._spawn_procedural_fizz()
+                
             # 1. Update Player (Full Physics)
             self.player.update(dt)
         
@@ -109,7 +114,7 @@ class GameScene(BaseScene):
                 if self.player.rect.colliderect(bubble.rect):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
-                        # Bug Fix: Recycle instead of removing to maintain density
+                        # Recycle instead of removing to maintain density
                         bubble.y = WINDOW_HEIGHT + random.randint(50, 150)
                         bubble.x = random.randint(50, WINDOW_WIDTH - 50)
                         continue
