@@ -100,8 +100,8 @@ class GameScene(BaseScene):
             # 1. Update Player (Full Physics)
             self.player.update(dt)
         
-        # 2. Update Score Passively (Floating precision fix)
-        ScoreManager.add_score(SCORE_PASSIVE_RATE * dt)
+            # 2. Update Score Passively (Floating precision fix)
+            ScoreManager.add_score(SCORE_PASSIVE_RATE * dt)
 
         # 3. Update Bubbles & Handle Recycling
         for bubble in self.bubbles[:]:
