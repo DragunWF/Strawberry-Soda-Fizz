@@ -1,6 +1,7 @@
 import pygame
 import random
 from modules.entities.base_entity import BaseEntity
+from modules.core.resource_manager import ResourceManager
 
 
 class SodaFizzDrink(BaseEntity):
@@ -14,8 +15,9 @@ class SodaFizzDrink(BaseEntity):
         self.height = 30
         self.speed = random.uniform(150.0, 250.0)
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        # Color: Bright Yellow for the "Soda Fizz" logo/drink
-        self.color = (255, 255, 0)
+        
+        # Load Sprite (Yellow fallback)
+        self.image = ResourceManager.get_image('drink.png', (255, 255, 0), (self.width, self.height))
 
     def update(self, dt: float) -> None:
         """
@@ -26,12 +28,6 @@ class SodaFizzDrink(BaseEntity):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the collectible as a distinct yellow rectangle.
+        Renders the collectible sprite or its fallback.
         """
-        pygame.draw.rect(screen, self.color, self.rect)
-        # Add a "label" effect
-        pygame.draw.rect(screen, (0, 0, 0), self.rect, 1)
-        # Small white highlight to make it pop
-        pygame.draw.line(screen, (255, 255, 255), 
-                         (self.rect.left + 4, self.rect.top + 4), 
-                         (self.rect.left + 4, self.rect.bottom - 4), 2)
+        screen.blit(self.image, self.rect)

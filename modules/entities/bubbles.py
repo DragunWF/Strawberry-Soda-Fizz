@@ -6,6 +6,7 @@ from modules.entities.base_entity import BaseEntity
 class Bubble(BaseEntity):
     """
     Carbonation bubbles that serve as rising platforms for the player.
+    Utilizes circular shapes for a more organic feel.
     """
 
     def __init__(self, x: float, y: float) -> None:
@@ -31,8 +32,9 @@ class Bubble(BaseEntity):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the bubble as a white circle.
+        Renders the bubble as a semi-transparent white circle.
         """
+        # Draw main circle
         pygame.draw.circle(screen, (255, 255, 255), (int(self.x), int(self.y)), self.radius)
-        # Subtle border for visibility
+        # Subtle border for a better 'fizz' feel
         pygame.draw.circle(screen, (200, 200, 200), (int(self.x), int(self.y)), self.radius, 1)

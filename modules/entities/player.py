@@ -1,6 +1,7 @@
 import pygame
 from modules.entities.base_entity import BaseEntity
-from modules.constants import GRAVITY, PLAYER_SPEED, BOUNCE_POWER, WINDOW_WIDTH, RED
+from modules.core.resource_manager import ResourceManager
+from modules.constants import GRAVITY, PLAYER_SPEED, BOUNCE_POWER, WINDOW_WIDTH
 
 
 class Player(BaseEntity):
@@ -14,6 +15,9 @@ class Player(BaseEntity):
         self.width = 30
         self.height = 30
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        
+        # Load Sprite (Crimson fallback)
+        self.image = ResourceManager.get_image('player.png', (220, 20, 60), (self.width, self.height))
         
         # Physics state
         self.vel_y = 0.0
@@ -55,8 +59,6 @@ class Player(BaseEntity):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the player as a red square (Strawberry Chunk).
+        Renders the player sprite to the screen.
         """
-        pygame.draw.rect(screen, RED, self.rect)
-        # Optional: Add a simple black border
-        pygame.draw.rect(screen, (0, 0, 0), self.rect, 2)
+        screen.blit(self.image, self.rect)
