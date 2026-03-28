@@ -22,6 +22,10 @@ BOUNCE_POWER = -600.0       # Vertical velocity on jump/bounce
 # --- Gameplay Tuning ---
 # Edit these to change the difficulty and feel of the game!
 GRACE_DURATION = 2.0        # Seconds of "no-gravity" at the start
-INITIAL_BUBBLE_COUNT = 6   # Number of bubbles in the screen at once
+INITIAL_BUBBLE_COUNT = 6    # Number of bubbles in the screen at once
 PLAYER_START_X = WINDOW_WIDTH // 2 - 15
 PLAYER_START_Y = 100
+
+# Scoring Tuning
+SCORE_PASSIVE_RATE = 10.0      # Points per second of survival
+SCORE_COLLECTIBLE_BONUS = 50.0 # Reward for picking up Soda Fizz drinks

@@ -9,7 +9,8 @@ from modules.core.score_manager import ScoreManager
 from modules.constants import (
     BG_COLOR, WINDOW_WIDTH, WINDOW_HEIGHT, 
     INITIAL_BUBBLE_COUNT, GRACE_DURATION, 
-    PLAYER_START_X, PLAYER_START_Y
+    PLAYER_START_X, PLAYER_START_Y,
+    SCORE_PASSIVE_RATE, SCORE_COLLECTIBLE_BONUS
 )
 
 
@@ -99,8 +100,8 @@ class GameScene(BaseScene):
             # 1. Update Player (Full Physics)
             self.player.update(dt)
         
-        # 2. Update Score Passively
-        ScoreManager.add_score(int(10 * dt))
+        # 2. Update Score Passively (Floating precision fix)
+        ScoreManager.add_score(SCORE_PASSIVE_RATE * dt)
 
         # 3. Update Bubbles & Handle Recycling
         for bubble in self.bubbles[:]:
@@ -114,7 +115,7 @@ class GameScene(BaseScene):
                 if self.player.rect.colliderect(bubble.rect):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
-                        # Recycle instead of removing to maintain density
+                        # Bug Fix: Recycle instead of removing to maintain density
                         bubble.y = WINDOW_HEIGHT + random.randint(50, 150)
                         bubble.x = random.randint(50, WINDOW_WIDTH - 50)
                         continue
@@ -131,7 +132,7 @@ class GameScene(BaseScene):
                 continue
 
             if self.player.rect.colliderect(drink.rect):
-                ScoreManager.add_score(500)
+                ScoreManager.add_score(SCORE_COLLECTIBLE_BONUS)
                 self.collectibles.remove(drink)
 
         # 5. Check Failure Condition: Only check after grace period
