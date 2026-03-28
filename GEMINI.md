@@ -33,7 +33,7 @@ strawberry_soda_project/
 ├── prototypes/
 ├── utils/
 │   └── math_helpers.py
-├── src/
+├── modules/
 │   ├── core/
 │   │   ├── engine.py
 │   │   ├── state_machine.py
