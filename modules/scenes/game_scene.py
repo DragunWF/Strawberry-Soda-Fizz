@@ -1,44 +1,61 @@
 import pygame
 from typing import List, Optional
 from modules.scenes.base_scene import BaseScene
-from modules.constants import WINDOW_WIDTH, WINDOW_HEIGHT
+from modules.entities.player import Player
+from modules.constants import BG_COLOR, WINDOW_WIDTH, WINDOW_HEIGHT
 
 
 class GameScene(BaseScene):
     """
-    A placeholder scene for the actual gameplay area.
-    Transitions to Game Over state when 'K' is pressed.
+    Main gameplay area for Strawberry Soda Fizz.
+    Manages the player entity and handles failure conditions.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self.font = pygame.font.SysFont(None, 24)
+        # Spawn Strawberry Chunk in the top-middle segment
+        self.player = Player(WINDOW_WIDTH // 2 - 15, 100)
 
     def enter(self) -> None:
         """
-        Resets the next state target when entering.
+        Resets the next state and player position when entering the game.
         """
         self.next_state = None
+        self.player.x = WINDOW_WIDTH // 2 - 15
+        self.player.y = 100
+        self.player.vel_y = 0
 
     def handle_events(self, events: List[pygame.event.Event]) -> None:
         """
-        Processes 'K' key to simulate a Game Over trigger.
+        Processes keyboard inputs for the state machine.
+        (Player movement keys are handled directly in the Player class via get_pressed).
         """
         for event in events:
             if event.type == pygame.KEYDOWN:
+                # Debug override: Kill player manually
                 if event.key == pygame.K_k:
                     self.next_state = "GAME_OVER"
 
     def update(self, dt: float) -> Optional[str]:
         """
-        Returns the next state target.
+        Updates the player physics and checks for "Fall-Off" failure.
         """
+        # 1. Update Entities
+        self.player.update(dt)
+        
+        # 2. Check Failure Condition: Falling off screen
+        # Using player's rect top or center ensures some leeway
+        if self.player.y > WINDOW_HEIGHT:
+            self.next_state = "GAME_OVER"
+
         return self.next_state
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders gameplay placeholder text.
+        Renders the game environment and all entities.
         """
-        text_surf = self.font.render("Game Running - Press 'K' to simulate Game Over", True, (0, 0, 0))
-        text_rect = text_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
-        screen.blit(text_surf, text_rect)
+        # 1. Clear Screen
+        screen.fill(BG_COLOR)
+
+        # 2. Draw Entities
+        self.player.draw(screen)
