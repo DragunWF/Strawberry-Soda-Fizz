@@ -26,6 +26,7 @@ class Bubble(BaseEntity):
         Moves the bubble upward.
         """
         self.y -= self.speed * dt
+        self.rect.x = int(self.x - self.radius)
         self.rect.y = int(self.y - self.radius)
 
     def draw(self, screen: pygame.Surface) -> None:

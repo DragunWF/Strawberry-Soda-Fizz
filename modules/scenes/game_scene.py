@@ -71,18 +71,21 @@ class GameScene(BaseScene):
         ScoreManager.add_score(int(10 * dt))
 
         # 3. Update Bubbles & Handle Recycling
-        for bubble in self.bubbles:
+        for bubble in self.bubbles[:]:  # Use a copy to allow removal
             bubble.update(dt)
             if bubble.y + bubble.radius < 0:
                 bubble.y = WINDOW_HEIGHT + random.randint(50, 150)
                 bubble.x = random.randint(50, WINDOW_WIDTH - 50)
-                bubble.rect.y = int(bubble.y - bubble.radius)
+                # Position sync is now handled within bubble.update()
 
             # Collision Logic: Player landing on Bubble
             if self.player.vel_y > 0:
                 if self.player.rect.colliderect(bubble.rect):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
+                        # Bug Fix: Pop the bubble on bounce
+                        self.bubbles.remove(bubble)
+                        continue
 
         # 4. Handle Collectibles: Spawning & Logic
         # ~1% chance to spawn per frame (at 60 FPS)
