@@ -64,7 +64,7 @@ For each phase, the developer will request a "Meta-Prompt" from the AI (e.g., _"
   - Implement the failure condition: if the player falls below the screen, trigger a state change to the Game Over scene.
 - **Milestone:** A fully playable game loop with a working score and fail state.
 
-### Phase 6: Polish & Resource Management (Optional/Final)
+### Phase 6: Polish & Resource Management
 
 **Objective:** Replace placeholder shapes with actual graphics and sound.
 
