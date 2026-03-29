@@ -5,6 +5,7 @@ from modules.scenes.base_scene import BaseScene
 from modules.entities.player import Player
 from modules.entities.bubbles import Bubble
 from modules.entities.collectibles import SodaFizzDrink
+from modules.entities.particles import Particle
 from modules.core.score_manager import ScoreManager
 from modules.constants import (
     BG_COLOR, WINDOW_WIDTH, WINDOW_HEIGHT, 
@@ -17,7 +18,7 @@ from modules.constants import (
 class GameScene(BaseScene):
     """
     Main gameplay area for Strawberry Soda Fizz.
-    Manages the player entity, procedural bubbles, and scoring.
+    Manages the player entity, procedural bubbles, scoring, and particles.
     """
 
     def __init__(self) -> None:
@@ -26,6 +27,7 @@ class GameScene(BaseScene):
         self.player = Player(PLAYER_START_X, PLAYER_START_Y)
         self.bubbles: List[Bubble] = []
         self.collectibles: List[SodaFizzDrink] = []
+        self.particles: List[Particle] = []
         
         # HUD and UI settings
         self.hud_font = pygame.font.SysFont(None, 36)
@@ -45,13 +47,24 @@ class GameScene(BaseScene):
 
     def _spawn_procedural_fizz(self) -> None:
         """
-        Fills the screen with the remaining procedural bubbles.
+        Fills the screen with the remaining procedural bubbles starting from the bottom.
         """
         for _ in range(INITIAL_BUBBLE_COUNT - len(self.bubbles)):
             x = random.randint(50, WINDOW_WIDTH - 50)
             y = random.randint(150, WINDOW_HEIGHT - 50)
             self.bubbles.append(Bubble(x, y))
         self.fizz_spawned = True
+
+    def _spawn_pop_particles(self, x: float, y: float) -> None:
+        """
+        Creates a burst of particles at the given coordinates.
+        """
+        for _ in range(12):
+            vx = random.uniform(-150, 150)
+            vy = random.uniform(-150, 150)
+            color = (255, 255, 255) # White fizzy particles
+            lifetime = random.uniform(0.3, 0.7)
+            self.particles.append(Particle(x, y, vx, vy, color, lifetime))
 
     def enter(self) -> None:
         """
@@ -65,6 +78,7 @@ class GameScene(BaseScene):
         
         ScoreManager.reset_score()
         self.collectibles = []
+        self.particles = []
         self._spawn_starting_platform()
 
     def handle_events(self, events: List[pygame.event.Event]) -> None:
@@ -78,8 +92,7 @@ class GameScene(BaseScene):
 
     def update(self, dt: float) -> Optional[str]:
         """
-        Updates entities and handles physics/scoring.
-        Triggers procedural fizz spawning after the grace period ends.
+        Updates entities, particles, and handles physics/scoring.
         """
         # --- Grace Period Update ---
         if self.grace_timer > 0:
@@ -99,11 +112,16 @@ class GameScene(BaseScene):
                 
             # 1. Update Player (Full Physics)
             self.player.update(dt)
-        
-            # 2. Update Score Passively (Floating precision fix)
+            # 2. Update Score Passively
             ScoreManager.add_score(SCORE_PASSIVE_RATE * dt)
+        
+        # 3. Update Particles
+        for particle in self.particles[:]:
+            particle.update(dt)
+            if not particle.is_alive():
+                self.particles.remove(particle)
 
-        # 3. Update Bubbles & Handle Recycling
+        # 4. Update Bubbles & Handle Recycling
         for bubble in self.bubbles[:]:
             bubble.update(dt)
             if bubble.y + bubble.radius < 0:
@@ -115,12 +133,14 @@ class GameScene(BaseScene):
                 if self.player.rect.colliderect(bubble.rect):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
-                        # Bug Fix: Recycle instead of removing to maintain density
+                        # Spawn visual feedback
+                        self._spawn_pop_particles(bubble.x, bubble.y)
+                        # Recycle immediately to maintain density
                         bubble.y = WINDOW_HEIGHT + random.randint(50, 150)
                         bubble.x = random.randint(50, WINDOW_WIDTH - 50)
                         continue
 
-        # 4. Handle Collectibles: Spawning & Logic
+        # 5. Handle Collectibles: Spawning & Logic
         if random.random() < 0.01:
             x = random.randint(20, WINDOW_WIDTH - 40)
             self.collectibles.append(SodaFizzDrink(x, -50))
@@ -135,7 +155,7 @@ class GameScene(BaseScene):
                 ScoreManager.add_score(SCORE_COLLECTIBLE_BONUS)
                 self.collectibles.remove(drink)
 
-        # 5. Check Failure Condition: Only check after grace period
+        # 6. Check Failure Condition: Only check after grace period
         if self.grace_timer <= 0:
             if self.player.y > WINDOW_HEIGHT:
                 self.next_state = "GAME_OVER"
@@ -144,26 +164,30 @@ class GameScene(BaseScene):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the background, entities, and the HUD.
+        Renders the background, entities, particles, and the HUD.
         """
         # 1. Clear Screen
         screen.fill(BG_COLOR)
 
-        # 2. Draw Bubbles & Collectibles
+        # 2. Draw Bubbles & Collectibles (Interactive Layer)
         for bubble in self.bubbles:
             bubble.draw(screen)
         
         for drink in self.collectibles:
             drink.draw(screen)
 
-        # 3. Draw Player
+        # 3. Draw Particles (Visual Feedback Layer)
+        for particle in self.particles:
+            particle.draw(screen)
+
+        # 4. Draw Player
         self.player.draw(screen)
 
-        # 4. Draw HUD
+        # 5. Draw HUD
         score_text = self.hud_font.render(f"Fizzy Score: {ScoreManager.get_score()}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
 
-        # 5. Draw "Ready?" during Grace Period
+        # 6. Draw "Ready?" during Grace Period
         if self.grace_timer > 0:
             ready_surf = self.grace_font.render("Fizzy Ready?", True, (255, 255, 255))
             ready_rect = ready_surf.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
