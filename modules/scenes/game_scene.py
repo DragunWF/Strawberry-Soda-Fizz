@@ -5,7 +5,7 @@ from modules.scenes.base_scene import BaseScene
 from modules.entities.player import Player
 from modules.entities.bubbles import Bubble
 from modules.entities.collectibles import SodaFizzDrink
-from modules.entities.particles import Particle
+from modules.entities.particles import ParticleManager
 from modules.core.score_manager import ScoreManager
 from modules.constants import (
     BG_COLOR, WINDOW_WIDTH, WINDOW_HEIGHT, 
@@ -27,7 +27,7 @@ class GameScene(BaseScene):
         self.player = Player(PLAYER_START_X, PLAYER_START_Y)
         self.bubbles: List[Bubble] = []
         self.collectibles: List[SodaFizzDrink] = []
-        self.particles: List[Particle] = []
+        self.particle_manager = ParticleManager()
         
         # HUD and UI settings
         self.hud_font = pygame.font.SysFont(None, 36)
@@ -55,17 +55,6 @@ class GameScene(BaseScene):
             self.bubbles.append(Bubble(x, y))
         self.fizz_spawned = True
 
-    def _spawn_pop_particles(self, x: float, y: float) -> None:
-        """
-        Creates a burst of particles at the given coordinates.
-        """
-        for _ in range(12):
-            vx = random.uniform(-150, 150)
-            vy = random.uniform(-150, 150)
-            color = (255, 255, 255) # White fizzy particles
-            lifetime = random.uniform(0.3, 0.7)
-            self.particles.append(Particle(x, y, vx, vy, color, lifetime))
-
     def enter(self) -> None:
         """
         Resets the scene, player position, score, and starts the grace period.
@@ -78,7 +67,7 @@ class GameScene(BaseScene):
         
         ScoreManager.reset_score()
         self.collectibles = []
-        self.particles = []
+        self.particle_manager.active_particles.clear()
         self._spawn_starting_platform()
 
     def handle_events(self, events: List[pygame.event.Event]) -> None:
@@ -116,10 +105,7 @@ class GameScene(BaseScene):
             ScoreManager.add_score(SCORE_PASSIVE_RATE * dt)
         
         # 3. Update Particles
-        for particle in self.particles[:]:
-            particle.update(dt)
-            if not particle.is_alive():
-                self.particles.remove(particle)
+        self.particle_manager.update(dt)
 
         # 4. Update Bubbles & Handle Recycling
         for bubble in self.bubbles[:]:
@@ -134,7 +120,7 @@ class GameScene(BaseScene):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
                         # Spawn visual feedback
-                        self._spawn_pop_particles(bubble.x, bubble.y)
+                        self.particle_manager.spawn_burst((bubble.x, bubble.y), (255, 255, 255), 12)
                         # Recycle immediately to maintain density
                         bubble.y = WINDOW_HEIGHT + random.randint(50, 150)
                         bubble.x = random.randint(50, WINDOW_WIDTH - 50)
@@ -153,6 +139,8 @@ class GameScene(BaseScene):
 
             if self.player.rect.colliderect(drink.rect):
                 ScoreManager.add_score(SCORE_COLLECTIBLE_BONUS)
+                # Golden/Yellow reward burst on pickup
+                self.particle_manager.spawn_burst((drink.x, drink.y), (255, 215, 0), 20)
                 self.collectibles.remove(drink)
 
         # 6. Check Failure Condition: Only check after grace period
@@ -177,8 +165,7 @@ class GameScene(BaseScene):
             drink.draw(screen)
 
         # 3. Draw Particles (Visual Feedback Layer)
-        for particle in self.particles:
-            particle.draw(screen)
+        self.particle_manager.draw(screen)
 
         # 4. Draw Player
         self.player.draw(screen)
