@@ -7,7 +7,7 @@ from modules.constants import GRAVITY, PLAYER_SPEED, BOUNCE_POWER, WINDOW_WIDTH
 class Player(BaseEntity):
     """
     The main character: a rebellious Strawberry Chunk.
-    Handles gravity-based physics and horizontal movement.
+    Handles gravity-based physics, horizontal movement, and dynamic shadows.
     """
 
     def __init__(self, x: float, y: float) -> None:
@@ -59,6 +59,29 @@ class Player(BaseEntity):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the player sprite to the screen.
+        Renders the player sprite to the screen with a dynamic contact shadow.
         """
+        # --- Contact Shadow Generation ---
+        # Shadow narrows as the player falls faster, simulating depth/distance
+        # Max falling speed clamped roughly around 1000 for interpolation
+        speed_factor = min(abs(self.vel_y) / 1000.0, 1.0)
+        
+        # As speed factor nears 1 (fast), shadow shrinks. Near 0 (resting), shadow is wide.
+        shadow_width = max(int(self.width * (1.0 - speed_factor * 0.6)), 8)
+        shadow_height = int(shadow_width * 0.35)
+        
+        if shadow_width > 0 and shadow_height > 0:
+            shadow_surface = pygame.Surface((shadow_width, shadow_height), pygame.SRCALPHA)
+            
+            # Semi-transparent black oval shadow
+            pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), shadow_surface.get_rect())
+            
+            # Position shadow slightly below the center-bottom of the player
+            shadow_x = self.rect.centerx - (shadow_width // 2)
+            shadow_y = self.rect.bottom + 5
+            
+            # Blit using multiplicative blending to naturally darken background sodas/bubbles
+            screen.blit(shadow_surface, (shadow_x, shadow_y), special_flags=pygame.BLEND_RGBA_MULT)
+
+        # --- Draw Player ---
         screen.blit(self.image, self.rect)
