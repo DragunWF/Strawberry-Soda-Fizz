@@ -45,6 +45,21 @@ Expanding the current particle system to handle specific gameplay rewards.
 - **Parallax Background** (Optional Consideration): Subtle movement of background "fizz" layers to create depth.
 - **Dynamic Shadows**: All interactive entities will cast shadows on the pink soda background to provide a sense of space.
 
+## 5. Main Menu Polish
+
+Enhance the first impression with an active and kinetic initial scene.
+
+### Menu Visuals
+
+- **Rising Bubbles**: Add a background layer of procedural bubbles to the menu for visual consistency.
+- **Floating Title**: Implement a gentle vertical "sine wave" bounce for the game title.
+- **Glowing Title**: Apply a similar additive blend glow effect to the title text.
+
+### Better UI Interaction
+
+- **Hover States**: Update `TextButton` to scale up slightly (e.g., 1.1x) when the mouse is over it.
+- **High Score HUD**: Display the "Best Score" from `ScoreManager` directly on the main menu.
+
 ---
 
 **Next Steps:**
