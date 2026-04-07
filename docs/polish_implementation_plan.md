@@ -27,6 +27,12 @@ Transition from flat shapes to stylized, 3D-effect organic assets using advanced
 
 - **Contact Shadow**: A dynamic drop shadow that scales slightly with the player's vertical velocity.
 
+### Collectibles (Soda Fizz Drink)
+
+- **Luminous Glow**: Replace the flat square image with an additive blend golden glow effect (`BLEND_RGBA_ADD`).
+- **Inner Core**: Add an inner bright core for an energy-like appearance.
+- **Shadow**: Implement a dynamic contact shadow beneath the collectible.
+
 ## 3. Advanced Particle Effects
 
 Expanding the current particle system to handle specific gameplay rewards.
