@@ -10,7 +10,7 @@ class ResourceManager:
     """
     _images: Dict[str, pygame.Surface] = {}
     _fonts: Dict[str, pygame.font.Font] = {}
-    _sounds: Dict[str, pygame.mixer.Sound] = {}
+    _sounds: Dict[str, Optional[pygame.mixer.Sound]] = {}
 
     # Root directory of the project for absolute pathing
     _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,7 +32,7 @@ class ResourceManager:
         except (pygame.error, FileNotFoundError, Exception):
             # Only print warning if it's not a generic fallback request
             if name != "player.png":
-                print(f"Warning: Resource '{name}' not found at {path}. Using fallback.")
+                print(f"Warning: Resource '{name}' not found. Using fallback.")
             fallback = pygame.Surface(size)
             fallback.fill(fallback_color)
             cls._images[name] = fallback
@@ -66,6 +66,7 @@ class ResourceManager:
         """
         Loads a sound from assets/audio/ or returns None if missing.
         Ensures the mixer is initialized before attempting to load.
+        Caches both successes and failures to prevent repeated filesystem lookups.
         """
         if name in cls._sounds:
             return cls._sounds[name]
@@ -77,13 +78,14 @@ class ResourceManager:
         try:
             path = os.path.join(cls._base_dir, "assets", "audio", name)
             if not os.path.exists(path):
+                print(f"Sound effect '{name}' not found at {path}!")
+                cls._sounds[name] = None
                 return None
                 
             sound = pygame.mixer.Sound(path)
             cls._sounds[name] = sound
             return sound
         except (pygame.error, FileNotFoundError, Exception):
-            print(f"Sound effect '{name}' not found!")
-            # Returning None if the sound file is missing or mixer is uninitialized.
-            # AudioManager handles this gracefully.
+            print(f"Sound effect '{name}' failed to load!")
+            cls._sounds[name] = None
             return None

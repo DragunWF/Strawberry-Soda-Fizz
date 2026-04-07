@@ -4,6 +4,7 @@ from typing import List, Optional, Dict
 
 from modules.constants import WINDOW_WIDTH, WINDOW_HEIGHT, FPS, TITLE, BG_COLOR
 from modules.core.state_machine import StateMachine
+from modules.core.audio_manager import AudioManager
 
 from modules.scenes.base_scene import BaseScene
 from modules.scenes.main_menu import MainMenuScene
@@ -48,6 +49,10 @@ class Engine:
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption(TITLE)
         self.clock = pygame.time.Clock()
+        
+        # Pre-load sounds after mixer is ready
+        AudioManager.play_ui_click() # Just trigger a lazy load for all sounds early
+        
         self.is_running = True
         self.state_machine = StateMachine()
 

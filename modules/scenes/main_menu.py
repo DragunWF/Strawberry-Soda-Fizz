@@ -6,6 +6,7 @@ from modules.scenes.base_scene import BaseScene
 from modules.ui.text_button import TextButton
 from modules.entities.bubbles import Bubble
 from modules.core.score_manager import ScoreManager
+from modules.core.audio_manager import AudioManager
 from modules.constants import BG_COLOR, TITLE, WINDOW_WIDTH, WINDOW_HEIGHT
 
 
@@ -13,6 +14,7 @@ class MainMenuScene(BaseScene):
     """
     The initial scene for the game, featuring the title, a start button, 
     and a rising background bubble aesthetic.
+    Optimized: Caches title and glow surfaces to eliminate per-frame font.render calls.
     """
 
     def __init__(self) -> None:
@@ -33,6 +35,10 @@ class MainMenuScene(BaseScene):
         
         # Timing variable for the floating sine wave
         self.time_elapsed = 0.0
+
+        # --- Performance Caching ---
+        self._title_surf = self.title_font.render(TITLE, True, (255, 255, 255))
+        self._glow_surf = self.title_font.render(TITLE, True, (255, 105, 180)) # Hot Pink glow
 
     def _spawn_initial_bubbles(self) -> None:
         """
@@ -55,6 +61,7 @@ class MainMenuScene(BaseScene):
         """
         for event in events:
             if self.start_button.handle_event(event):
+                AudioManager.play_ui_click()
                 self.next_state = "GAME"
 
     def update(self, dt: float) -> Optional[str]:
@@ -89,21 +96,15 @@ class MainMenuScene(BaseScene):
         bounce_offset = math.sin(self.time_elapsed * 3.0) * 15.0
         title_center_y = (WINDOW_HEIGHT // 3) + bounce_offset
 
-        # Create base title surfaces
-        # We use a multi-pass offset method for the glow instead of scaling/blending
-        # which can sometimes cause rectangular artifacts with standard fonts.
-        glow_color = (255, 105, 180) # Hot Pink glow
-        glow_surf = self.title_font.render(TITLE, True, glow_color)
-        title_surf = self.title_font.render(TITLE, True, (255, 255, 255))
+        # Using cached title surfaces for performance
+        title_rect = self._title_surf.get_rect(center=(WINDOW_WIDTH // 2, int(title_center_y)))
         
-        title_rect = title_surf.get_rect(center=(WINDOW_WIDTH // 2, int(title_center_y)))
-        
-        # Draw the "glow" by blitting the pink text with small offsets
+        # Draw the "glow" by blitting the cached pink text with small offsets
         for dx, dy in [(-2, -2), (2, -2), (-2, 2), (2, 2), (0, -3), (0, 3), (-3, 0), (3, 0)]:
-            screen.blit(glow_surf, (title_rect.x + dx, title_rect.y + dy))
+            screen.blit(self._glow_surf, (title_rect.x + dx, title_rect.y + dy))
             
         # Then blit the crisp white text over it centered
-        screen.blit(title_surf, title_rect)
+        screen.blit(self._title_surf, title_rect)
 
         # 4. Draw Start Button
         self.start_button.draw(screen)

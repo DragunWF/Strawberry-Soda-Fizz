@@ -3,6 +3,7 @@ from typing import List, Optional
 from modules.scenes.base_scene import BaseScene
 from modules.ui.text_button import TextButton
 from modules.core.score_manager import ScoreManager
+from modules.core.audio_manager import AudioManager
 from modules.constants import WINDOW_WIDTH, WINDOW_HEIGHT
 
 
@@ -38,8 +39,10 @@ class GameOverScene(BaseScene):
         """
         for event in events:
             if self.play_again_button.handle_event(event):
+                AudioManager.play_ui_click()
                 self.next_state = "GAME"
             elif self.main_menu_button.handle_event(event):
+                AudioManager.play_ui_click()
                 self.next_state = "MENU"
 
     def update(self, dt: float) -> Optional[str]:
