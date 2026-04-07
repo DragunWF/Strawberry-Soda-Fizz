@@ -1,6 +1,5 @@
 import pygame
 from modules.entities.base_entity import BaseEntity
-from modules.core.resource_manager import ResourceManager
 from modules.constants import GRAVITY, PLAYER_SPEED, BOUNCE_POWER, WINDOW_WIDTH
 
 
@@ -8,6 +7,7 @@ class Player(BaseEntity):
     """
     The main character: a rebellious Strawberry Chunk.
     Handles gravity-based physics, horizontal movement, and dynamic shadows.
+    Now utilizes purely procedural graphics to fit the "fizzy" aesthetic.
     """
 
     def __init__(self, x: float, y: float) -> None:
@@ -15,9 +15,6 @@ class Player(BaseEntity):
         self.width = 30
         self.height = 30
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        
-        # Load Sprite (Crimson fallback)
-        self.image = ResourceManager.get_image('player.png', (220, 20, 60), (self.width, self.height))
         
         # Physics state
         self.vel_y = 0.0
@@ -59,29 +56,45 @@ class Player(BaseEntity):
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Renders the player sprite to the screen with a dynamic contact shadow.
+        Renders a procedurally generated Strawberry Chunk with a dynamic shadow.
         """
-        # --- Contact Shadow Generation ---
-        # Shadow narrows as the player falls faster, simulating depth/distance
-        # Max falling speed clamped roughly around 1000 for interpolation
+        # --- 1. Dynamic Contact Shadow ---
         speed_factor = min(abs(self.vel_y) / 1000.0, 1.0)
-        
-        # As speed factor nears 1 (fast), shadow shrinks. Near 0 (resting), shadow is wide.
         shadow_width = max(int(self.width * (1.0 - speed_factor * 0.6)), 8)
         shadow_height = int(shadow_width * 0.35)
         
         if shadow_width > 0 and shadow_height > 0:
             shadow_surface = pygame.Surface((shadow_width, shadow_height), pygame.SRCALPHA)
-            
-            # Semi-transparent black oval shadow
-            pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), shadow_surface.get_rect())
-            
-            # Position shadow slightly below the center-bottom of the player
+            pygame.draw.ellipse(shadow_surface, (0, 0, 0, 80), (0, 0, shadow_width, shadow_height))
             shadow_x = self.rect.centerx - (shadow_width // 2)
             shadow_y = self.rect.bottom + 5
-            
-            # Blit using multiplicative blending to naturally darken background sodas/bubbles
             screen.blit(shadow_surface, (shadow_x, shadow_y), special_flags=pygame.BLEND_RGBA_MULT)
 
-        # --- Draw Player ---
-        screen.blit(self.image, self.rect)
+        # --- 2. Procedural Strawberry Body ---
+        # Draw the main red body (slightly tapered at the bottom)
+        body_rect = self.rect.inflate(-2, -4)
+        pygame.draw.ellipse(screen, (220, 20, 60), body_rect) # Crimson body
+        # Overlay a slightly brighter red highlight on top
+        highlight_rect = pygame.Rect(self.rect.x + 5, self.rect.y + 5, 10, 8)
+        pygame.draw.ellipse(screen, (255, 69, 0), highlight_rect) # Red-orange highlight
+
+        # --- 3. Green Leaves/Stem ---
+        leaf_points = [
+            (self.rect.centerx, self.rect.top),           # Middle top
+            (self.rect.left + 5, self.rect.top - 5),      # Left tip
+            (self.rect.centerx, self.rect.top + 5),       # Middle anchor
+            (self.rect.right - 5, self.rect.top - 5)      # Right tip
+        ]
+        pygame.draw.polygon(screen, (34, 139, 34), leaf_points) # Forest Green
+
+        # --- 4. Yellow Seeds ---
+        seed_color = (255, 255, 224) # Light yellow
+        seeds = [
+            (self.rect.x + 8, self.rect.y + 15),
+            (self.rect.x + 22, self.rect.y + 15),
+            (self.rect.centerx, self.rect.y + 22),
+            (self.rect.x + 10, self.rect.y + 25),
+            (self.rect.x + 20, self.rect.y + 25)
+        ]
+        for sx, sy in seeds:
+            pygame.draw.circle(screen, seed_color, (sx, sy), 1)

@@ -7,6 +7,7 @@ from modules.entities.bubbles import Bubble
 from modules.entities.collectibles import SodaFizzDrink
 from modules.entities.particles import ParticleManager
 from modules.core.score_manager import ScoreManager
+from modules.core.audio_manager import AudioManager
 from modules.constants import (
     BG_COLOR, WINDOW_WIDTH, WINDOW_HEIGHT, 
     INITIAL_BUBBLE_COUNT, GRACE_DURATION, 
@@ -119,6 +120,7 @@ class GameScene(BaseScene):
                 if self.player.rect.colliderect(bubble.rect):
                     if self.player.rect.bottom <= bubble.rect.centery + 15:
                         self.player.bounce()
+                        AudioManager.play_pop()
                         # Spawn visual feedback
                         self.particle_manager.spawn_burst((bubble.x, bubble.y), (255, 255, 255), 12)
                         # Recycle immediately to maintain density
@@ -139,6 +141,7 @@ class GameScene(BaseScene):
 
             if self.player.rect.colliderect(drink.rect):
                 ScoreManager.add_score(SCORE_COLLECTIBLE_BONUS)
+                AudioManager.play_pickup()
                 # Golden/Yellow reward burst on pickup
                 self.particle_manager.spawn_burst((drink.x, drink.y), (255, 215, 0), 20)
                 self.collectibles.remove(drink)
@@ -146,6 +149,8 @@ class GameScene(BaseScene):
         # 6. Check Failure Condition: Only check after grace period
         if self.grace_timer <= 0:
             if self.player.y > WINDOW_HEIGHT:
+                if self.next_state != "GAME_OVER":
+                    AudioManager.play_lose()
                 self.next_state = "GAME_OVER"
 
         return self.next_state
